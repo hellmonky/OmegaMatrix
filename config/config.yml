@@ -1,0 +1,21 @@
+#
+# 当前工程的配置文件
+#
+
+# 当前工程对外发布的基础配置信息
+public:
+  domain: 'http://localhost:7001'
+
+# 基础配置信息
+common:
+  regionId: 'xxx'
+  accessKeyId: 'xxx'
+  accessKeySecret: 'xxx'
+  proxy: 'http://xxx:xxx'
+
+# 产品的配置信息设置
+aliyun.SLB:
+  endpoint: 'http://slb.aliyun.com'
+
+aliyun.ECS:
+  endpoint: 'http://ecs.aliyun.com'

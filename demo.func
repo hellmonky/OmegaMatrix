@@ -1,0 +1,136 @@
+#
+# 函数调用的 DSL 格式文件定义
+#
+
+
+# description 字段用于说明当前发布接口的信息。因为明确了函数定义，所以可以用于自动化生成测试用例
+description:
+  # info 字段如果存在，用于说明当前定义函数的说明，默认为字符串
+  info: "初始化一个ECS实例"
+
+  # type字段用于说明当前函数的客户端信息
+  # 例如aliyun.RPCAPI，表示这个函数需要以aliyun客户端RPCAPI方式进行调用；userDefine 表示用户自定义接口
+  type: aliyun.RPCAPI
+
+  # httpMethod 字段用于说明支持的HTTP请求类型，对应于HTTP协议支持的8种请求类型：GET,POST,DELETE,PUT,TRACE,HEAD,OPTIONS,CONNECT
+  httpMethod: GET
+
+  # router 字段用于说明当前定义接口发布为 HTTP 服务的时候默认的路由路径
+  # 如果是在原生函数中定义，则和当前运行时配置的 public.domian 一起构成完整的URL
+  router: /userdefine/iaas/compute/instance/initEcsInstance
+
+  # product 字段用于说明调用的产品类型，如果是自定义函数需要给出定位符，如果是产品引入需要大写产品名称，例如：ECS，SLB等
+  prouduct: userdefine.iaas.compute.instance
+
+  # version 字段用于说明调用当前产品需要的版本信息，必填并且是一个字符串
+  version: "2018-11-22"
+
+  # functionName 字段说明当前接口的名称
+  functionName: initEcsInstance
+
+  # input 字段说明当前接口的入口参数要求
+  # 所有的函数参数必须包含三个属性：force，type和defaultValue
+  input:
+  # 参数名
+  -
+      # name 字段用于说明参数名称
+      name: param1
+      # force 字段用真值来说明该参数是否为必须参数，如果为真表示必选，如果为false或者没有这个字段默认为非必须参数
+      force: true
+      # type 字段用于说明这个函数参数的类型，类型说明用全小写的字母表示，例如string，int，float等
+      type: string
+      # defaultValue 字段用于说明这个函数参数的可取默认值，如果是null表示无默认值，否则为指定的值。
+      # defaultValue 还用于生成自动化测试用例中的初始化参数使用
+      defaultValue: null
+  -
+      name: param2
+      # type 字段用于说明这个函数参数的类型
+      type: int
+      # defaultValue 字段用于说明这个函数参数的可取默认值，如果是null表示无默认值，否则为指定的值
+      defaultValue: 32
+  -
+      name: param3
+      # type 字段用于说明这个函数参数的类型，比较特殊的为struct，表示一个结构体，并且支持嵌套
+      type: struct
+      # 当前值的类型为struct的时候，需要增加content来说明这个结构体的定义，使用JSON格式进行嵌套定义说明
+      content: {"params3-1": {"type":"int", "defaultVaule": 23}, "param3-2": {"type":"string", "defaultVaule": "default"}}
+      # defaultValue 字段用于说明这个函数参数的可取默认值，如果是null表示无默认值，否则为指定的值
+      defaultValue: 32
+
+  # output 字段说明当前接口的返回参数要求
+  output:
+  -
+      name: param1
+      # type 字段用于说明这个函数参数的类型，struct用于说明当前类型为接口体，引用参数需要用.表示这个接口体中的值
+      type: struct
+      # 当前值的类型为struct的时候，需要增加content来说明这个结构体的定义，使用JSON格式进行嵌套定义说明
+      content: {"params1": {"type":"int", "defaultValue":32},"param2": {"parm2-1": {"type":"string", "defaultValue":"hello"},"param2-2": {"type":"string", "defaultValue":"world"}}}
+      # defaultValue 字段用于说明这个函数参数的可取默认值，如果是null表示无默认值，接口提的默认值需要用JSON格式串表示
+      defaultValue: {"message":"success", "code":200}
+
+
+
+# 这里不应该定义函数，否则会出现定义和位置错误的问题，建议都通过引用方式，并且这里命名为 imports 来强化这个概念
+# functions 字段用于说明当前函数定义中依赖的其他函数定义
+# 可以在这个文件中按照上述规则进行定义，也可以引入已经定义的文件
+imports:
+  -
+    # type 表示要引入的类型，function表示引入函数
+    type: function
+    # namespace 表示要引入的函数定位，需要和当前函数文件所在的文件系统路径一致。
+    namespace: aliyun.ECS.2018-10-10.CreateInstance
+
+  -
+    # TODO: 还可以直接引入已经发布的工程文件（打包为zip），这里的import值必须和引入文件完全一致
+    type: package
+    # namespace 表示当前发布包在工程组织目录中所在的位置
+    namespace: package.zip
+
+
+
+# TODO: chain的调用语法可以简化，每一步骤只需要说明要进行调用的函数和参数转移函数定义就够了
+# chain 字段用于说明函数间调用关系和参数传递函数，这里必须引用上述 functions 字段中定义的函数，并且需要用 namespace 字段进行定位
+# 这里定义的流程本质上是整体调用关系生成了树，然后进行了后序遍历，转换为具体层次化接口的顺序调用，整体上等价于从叶子节点到根节点的逆向建模。
+chain:
+  -
+    # step 字段用于说明调用步骤，整体按照顺序执行
+    step: 1
+    # src和dst用于说明这个转移函数的入参和出参：
+    # src 字段表示需要以这里指定的函数的返回值作为当前转移函数的入参，如果是 input 表示为当前定义函数的用户输入
+    src: input
+    # dst 字段表示需要以当前转移函数的返回值作为dst指定函数的入参（确保参数调用可以成功）
+    dst: aliyun.ECS.2018-10-10.CreateInstance
+    # TODO: transform 字段用于表示这两个函数之间的传递函数。
+    # 函数定义可以是广义的DSL，也可以为支持的代码或者脚本文件，对应于接口调用间的处理。
+    # 第一版本只支持参数映射逻辑的处理：
+    # （1）如果设置in为default，表示使用当前调用函数参数的默认值；
+    # （2）in中可以通过global关键字，对当前工程配置的全局变量值进行引用，支持.分隔的嵌套层级；
+    # （3）要求转换的结果要和被调用函数的必填参数完全一致。
+    transform:
+      - in: param1
+        ou: param2
+      - in: param2
+        ou: param1
+
+  -
+    step: 3
+    src: aliyun.ECS.2018-10-10.StartupInstance
+    # 如果 dst 字段是 output 表示当前定义函数的输出，要求和当前函数定义完全一致。
+    dst: output
+    transform:
+      - in: param1
+        ou: param2
+      - in: param2
+        ou: param1
+
+  -
+    step: 2
+    src: aliyun.ECS.2018-10-10.CreateInstance
+    dst: aliyun.ECS.2018-10-10.StartupInstance
+    transform:
+      - in: param1
+        ou: param2
+      - in: param2
+        ou: param1
+
+

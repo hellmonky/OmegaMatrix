@@ -1,0 +1,71 @@
+#
+# 对外发布函数测试：创建一个SLB，获取详情，然后删除
+#
+
+description:
+  info: "初始化一个ECS实例"
+  type: origin
+  router: /userdefine/iaas/compute/instance/testSlb
+  prouduct: userdefine.iaas.compute.instance
+  version: "2018-11-22"
+  functionName: testSlb
+
+  input:
+  -
+    name: slb_name
+    force: true
+    type: string
+    defaultValue: "inTestSlb"
+
+  output:
+  -
+    name: once_exist_id
+    force: true
+    type: string
+
+
+imports:
+  -
+    type: function
+    namespace: aliyun.SLB.2014-05-15.CreateLoadBalancer
+  -
+    type: function
+    namespace: aliyun.SLB.2014-05-15.DeleteLoadBalancer
+
+
+chain:
+  -
+    step: 1
+    src: input
+    dst: aliyun.SLB.2014-05-15.CreateLoadBalancer
+    # 需要给出完整的参数转换说明
+    # 要求转换的结果要和被调用函数的必填参数完全一致！
+    transform:
+        # 如果设置in为default，表示使用当前调用函数参数的默认值
+      - in: default
+        ou: Action
+        # in中可以通过global关键字，对当前工程配置的全局变量值进行引用，支持.分隔的嵌套层级
+      - in: global.common.regionId
+        ou: RegionId
+      - in: slb_name
+        ou: LoadBalancerName
+  -
+    step: 2
+    src: aliyun.SLB.2014-05-15.CreateLoadBalancer
+    dst: aliyun.SLB.2014-05-15.DeleteLoadBalancer
+    transform:
+      - in: default
+        ou: Action
+      - in: global.common.regionId
+        ou: RegionId
+      - in: LoadBalancerId
+        ou: LoadBalancerId
+  -
+    step: 3
+    src: aliyun.SLB.2014-05-15.DeleteLoadBalancer
+    dst: output
+    transform:
+    - in: RequestId
+      ou: once_exist_id
+
+

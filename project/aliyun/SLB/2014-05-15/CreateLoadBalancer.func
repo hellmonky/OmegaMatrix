@@ -1,0 +1,52 @@
+#
+# 创建一个SLB实例
+#
+
+
+description:
+  info: "创建一个ECS实例"
+  type: aliyun.RPCAPI
+  httpMethod: GET
+  prouduct: aliyun.SLB
+  version: "2014-05-15"
+  functionName: CreateLoadBalancer
+
+  input:
+  -
+    name: Action
+    force: true
+    type: string
+    defaultValue: "CreateLoadBalancer"
+  -
+    name: RegionId
+    force: true
+    type: string
+  -
+    name: LoadBalancerName
+    force: false
+    type: string
+    defaultValue: "DefaultLoadBalancer"
+
+
+  output:
+  -
+    name: RequestId
+    type: string
+
+  - name: LoadBalancerId
+    type: string
+
+  - name: Address
+    type: string
+
+  - name: LoadBalancerName
+    type: string
+
+  - name: VpcId
+    type: string
+
+  - name: VSwitchId
+    type: string
+
+  - name: NetworkType
+    type: string

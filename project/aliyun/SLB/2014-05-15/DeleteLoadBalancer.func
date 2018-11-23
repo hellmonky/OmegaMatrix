@@ -1,0 +1,32 @@
+#
+# 删除一个SLB实例
+#
+
+description:
+  info: "创建一个ECS实例"
+  type: aliyun.RPCAPI
+  httpMethod: GET
+  prouduct: aliyun.SLB
+  version: "2014-05-15"
+  functionName: DeleteLoadBalancer
+
+  input:
+  -
+    name: Action
+    force: true
+    type: string
+    defaultValue: "DeleteLoadBalancer"
+  -
+    name: RegionId
+    force: true
+    type: string
+  -
+    name: LoadBalancerId
+    force: true
+    type: string
+
+
+  output:
+  -
+    name: RequestId
+    type: string
